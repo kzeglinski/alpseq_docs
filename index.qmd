@@ -1,0 +1,15 @@
+---
+title: "Home"
+---
+
+![](alpseq_logo.png){fig-alt="alpseq logo" fig-align="left" width="440"}
+
+Welcome to the *alpseq* documentation website! This page aims to explain how to run the *alpseq* nextflow pipeline, as well as the companion *alpseqR* R package.
+
+## Useful links
+
+-   The [*alpseq* preprint](https://www.biorxiv.org/content/10.1101/2025.10.22.661623v1)
+
+-   The [example data](https://www.ebi.ac.uk/ena/browser/view/PRJEB90877) used to develop *alpseq*
+
+-   [Another useful public dataset](https://www.ncbi.nlm.nih.gov/sra/?term=PRJNA638614) and its [corresponding paper](https://pubmed.ncbi.nlm.nih.gov/32887876/)

@@ -1,0 +1,33 @@
+---
+title: "alpseqR"
+---
+
+## Introduction
+The alpseqR package contains the various nanobody panning analysis functions used to generate *alpseq* reports. [It is available on github](https://github.com/kzeglinski/alpseqR) and can be installed in R as follows:
+
+```{r}
+#| eval: false
+if (!require("devtools")) {
+    install.packages("devtools")
+}
+
+devtools::install_github("kzeglinski/alpseqR")
+```
+
+This page will explain how to use alpseqR to perform your own custom analyses.
+
+## Setup
+how to get the files that the package needs, read them in
+
+## alpseqR functions
+### Count matrix preparation
+
+### Clustering
+
+### Visualisations
+
+### Top 100 selection
+
+### Comparisons
+
+## Example analysis workflow

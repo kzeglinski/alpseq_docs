@@ -1,0 +1,25 @@
+project:
+  type: website
+  output-dir: docs
+
+execute:
+  freeze: auto
+
+website:
+  title: "alpseq documentation"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - run_alpseq.qmd
+      - sample_reports.qmd
+      - alpseq_r.qmd
+
+format:
+  html:
+    theme: styles.scss
+    toc: true
+    toc-location: left
+
+
+

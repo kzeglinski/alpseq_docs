@@ -1,0 +1,112 @@
+---
+title: "Running alpseq"
+---
+
+## Introduction
+
+This page will teach you how to use *alpseq* to analyse nanobody panning data! 🦙
+
+## Running the pipeline
+
+1.  Clone the repo (`git clone https://github.com/kzeglinski/alpseq.git`)
+
+2.  Edit the `nextflow.config` file to suit your environment ([see below](#config) for more info).
+
+3.  Make sure you have nextflow installed on your computer
+
+4.  Run the pipeline using `nextflow run alpseq/main.nf -profile docker` or `nextflow run alpseq/main.nf -profile singularity` depending on which container engine you want to use
+
+There is also a nice guide on running nextflow pipelines for beginners [here](https://bioinformaticsworkbook.org/dataAnalysis/nextflow/01_introductionToNextFlow.html#gsc.tab=0)
+
+### Parameters
+
+On the command line, you can see a summary of key parameters using `nextflow run alpseq/main.nf --help`.
+
+**The most important parameters that you need to set every time (required arguments) are:**
+
+-   `--out_dir` is the path where output files will be written to. If it doesn't exist yet, the pipeline will create it
+
+-   `--fastq_dir` is the path where the input fastq files are located
+
+-   `--sample_sheet` is the path to the .csv formatted sample sheet
+
+**Other parameters you might sometimes need to change are:**
+
+-   `--use_igblast` whether to use IgBLAST for nanobody annotation or not (default: `true`)
+
+-   `--qc_only` whether to only perform quality control of the samples, and skip making a pan report. Turn this on if you are not analysing panning data with rounds (e.g. repertoire, or just sequencing unenriched libraries) (default: `false`)
+
+Some more advanced you shouldn't need to change often parameters are:
+
+-   `--adapter_r1` and `--adapter_r2` the read 1 and read 2 adapters to trim off (default are for Illumina NextSeq)
+
+-   `--maximum_overlap` the maximum overlap of reads 1 and 2, for merging with FLASH. You might need to change this if you have a different sequencing construct design (default: `250`)
+
+-   `--igblast_databases` and/or `--mb_scripts` the paths to the IgBLAST databases and matchbox scripts to use for nanobody annotation
+
+-   `--template_dir` and `--extensions_dir` and `--quaro_base_yaml` the paths to the template files used to generate quarto reports. You could change these to create your own custom reports
+
+-   `--sequence_trim_5p` and `--sequence_trim_3p` are optional sequences to trim off the 5' and 3' when writing out nucleotide sequences. This is useful if, for example, you want to remove bits of the nanobody DNA sequence prior to writing it out (e.g. remove his tag) (default: `""`)
+
+-   `--chunk_size` since IgBLAST doesn't scale well, break samples into chunks for annotation. This will submit a whole bunch of slurm jobs, so you might need to change it if that is a problem for your compute cluster (default: `25000`)
+
+#### Nextflow config files {#config}
+
+You can set all of the above parameters on the command line (e.g. `nextflow run alpseq/main.nf -profile docker --fastq_dir ~/my_files/`), although take care that, as for all nextflow pipelines, a single dash is used for nextflow options (e.g. `-profile docker`) and a double dash is used for pipeline parameters (e.g. `--fastq_dir ~/my_files/`).
+
+However, I personally prefer to change these parameters in the `nextflow.config` file that is contained within the top-level directory of the pipeline. This is handy as you can then copy the config into your output directory to have a record of the parameters you used.
+
+The config file also allows you to control other aspects of how nextflow runs this pipeline (for example, using SLURM or AWS). The config file supplied with *alpseq* has been written to run on WEHI’s Milton HPC, and may not work on your system. You might want to try looking at the [nf-core collection of institutional config files](https://github.com/nf-core/configs) to see if they have one for your institute. Alternatively, you could try asking a nextflow expert at your workplace!
+
+For more information about writing/editing nextflow config files, take a look at the [official nextflow documentation](https://www.nextflow.io/docs/latest/config.html).
+
+### Sample sheet
+
+Sample sheets should have the following columns:
+
+-   `sample_num`: a sample number (can duplicate samples if e.g. the same round 0 is shared across multiple pans)
+
+-   `library`: a string to name the library (just used for naming/labelling)
+
+-   `antigen`: a name for the antigen (just used for naming/labelling)
+
+-   `round`: the round of panning e.g. 0, 1, 2, 3, 4
+
+-   `replicate`: an ID for the replicate `NA` if no replicates
+
+-   `panning_id`: an ID that groups samples from the same pan (so that a report can contain comparisons of multiple pans)
+
+-   `report_id`: a name for the report (so you can generate multiple reports for multiple different pans at once)
+
+-   `r1_file_name`: name of the read 1 fastq file
+
+-   `r2_file_name`: name of the read 2 fastq file
+
+For example, the sample sheet to process the [Hanke et al.](https://pubmed.ncbi.nlm.nih.gov/32887876/) data would be:
+
+```         
+sample_num,library,antigen,round,replicate,panning_id,report_id,r1_file_name,r2_file_name
+S01,Tyson,covid,0,NA,1,hanke_et_al,round0_read1.fastq.gz,round0_read2.fastq.gz
+S02,Tyson,covid,1,NA,1,hanke_et_al,round1_read1.fastq.gz,round1_read2.fastq.gz
+S03,Tyson,covid,2,NA,1,hanke_et_al,round2_read1.fastq.gz,round2_read2.fastq.gz
+```
+
+### Output
+
+*alpseq* will output the following:
+
+-   `original_annotation_tsv`: the .tsv files from either IgBLAST or matchbox
+
+-   `processed_tsv`: the .tsv files that have been processed by alpseq (summaries of germline gene composition, tables of clone counts collapsed by CDR3, etc)
+
+-   `report`: the QC and panning reports generated by alpseq. See the 'sample reports' tab for examples of these
+
+## Other useful stuff
+
+### Sanger mode
+
+*alpseq* can be used to annotate sanger sequences with the `--sanger_mode` parameter. This isn't really a super recommended workflow, but exists as an option for our collaborators. Use at your own risk!
+
+### IgBLAST vs matchbox
+
+There are two different tools that can be used for annotating nanobodies in alpseq, [IgBLAST](https://www.ncbi.nlm.nih.gov/igblast/) (default) and [matchbox](https://github.com/jakob-schuster/matchbox). A comparison/benchmark is included in our [preprint](https://www.biorxiv.org/content/10.1101/2025.10.22.661623v1), but briefly the tools generate highly similar counts for most CDR3s. IgBLAST is much slower, but outputs a lot more information ([according to AIRR specs](https://docs.airr-community.org/en/stable/datarep/rearrangements.html#fields)), while matchbox is a lot faster but outputs just the bare minimum information for analysis (CDR3 and V gene). Choose the method that best suits the info you require and the computing power you have available!
