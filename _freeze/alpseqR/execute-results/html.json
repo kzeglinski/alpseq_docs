@@ -1,0 +1,15 @@
+{
+  "hash": "037b495fac5095c617967ea397cc4801",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"alpseqR\"\n---\n\n\n## Introduction\nThe alpseqR package contains the various nanobody panning analysis functions used to generate *alpseq* reports. [It is available on github](https://github.com/kzeglinski/alpseqR) and can be installed in R as follows:\n\n\n::: {.cell}\n\n```{.r .cell-code}\nif (!require(\"devtools\")) {\n    install.packages(\"devtools\")\n}\n\ndevtools::install_github(\"kzeglinski/alpseqR\")\n```\n:::\n\n\nThis page will explain how to use alpseqR to perform your own custom analyses.\n\n## Setup\nhow to get the files that the package needs, read them in\n\n## alpseqR functions\n### Count matrix preparation\n\n### Clustering\n\n### Visualisations\n\n### Top 100 selection\n\n### Comparisons\n\n## Example analysis workflow",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
