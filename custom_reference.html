@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Running alpseq – alpseq documentation</title>
+<title>Using alpseq with a custom reference – alpseq documentation</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -94,7 +94,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="./run_alpseq.html" aria-current="page"> 
+    <a class="nav-link" href="./run_alpseq.html"> 
 <span class="menu-text">Running alpseq</span></a>
   </li>  
   <li class="nav-item">
@@ -102,7 +102,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Sample reports</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./custom_reference.html"> 
+    <a class="nav-link active" href="./custom_reference.html" aria-current="page"> 
 <span class="menu-text">Using alpseq with a custom reference</span></a>
   </li>  
   <li class="nav-item">
@@ -124,18 +124,15 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
-  <li><a href="#running-the-pipeline" id="toc-running-the-pipeline" class="nav-link" data-scroll-target="#running-the-pipeline">Running the pipeline</a>
+  <li><a href="#building-the-database" id="toc-building-the-database" class="nav-link active" data-scroll-target="#building-the-database">Building the database</a>
   <ul class="collapse">
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#sample-sheet" id="toc-sample-sheet" class="nav-link" data-scroll-target="#sample-sheet">Sample sheet</a></li>
-  <li><a href="#output" id="toc-output" class="nav-link" data-scroll-target="#output">Output</a></li>
+  <li><a href="#creating-the-v-gene-annotation-file" id="toc-creating-the-v-gene-annotation-file" class="nav-link" data-scroll-target="#creating-the-v-gene-annotation-file">Creating the V gene annotation file</a></li>
+  <li><a href="#creating-the-v-gene-database" id="toc-creating-the-v-gene-database" class="nav-link" data-scroll-target="#creating-the-v-gene-database">Creating the V gene database</a></li>
+  <li><a href="#creating-the-auxiliary-file" id="toc-creating-the-auxiliary-file" class="nav-link" data-scroll-target="#creating-the-auxiliary-file">Creating the auxiliary file</a></li>
+  <li><a href="#creating-the-vdj-germline-databases" id="toc-creating-the-vdj-germline-databases" class="nav-link" data-scroll-target="#creating-the-vdj-germline-databases">Creating the V/D/J germline databases</a></li>
+  <li><a href="#what-to-do-if-you-get-the-dreaded-blast-queryoptions-error-message" id="toc-what-to-do-if-you-get-the-dreaded-blast-queryoptions-error-message" class="nav-link" data-scroll-target="#what-to-do-if-you-get-the-dreaded-blast-queryoptions-error-message">What to do if you get the dreaded ‘BLAST query/options error’ message</a></li>
   </ul></li>
-  <li><a href="#other-useful-stuff" id="toc-other-useful-stuff" class="nav-link" data-scroll-target="#other-useful-stuff">Other useful stuff</a>
-  <ul class="collapse">
-  <li><a href="#sanger-mode" id="toc-sanger-mode" class="nav-link" data-scroll-target="#sanger-mode">Sanger mode</a></li>
-  <li><a href="#igblast-vs-matchbox" id="toc-igblast-vs-matchbox" class="nav-link" data-scroll-target="#igblast-vs-matchbox">IgBLAST vs matchbox</a></li>
-  </ul></li>
+  <li><a href="#running-alpseq-with-the-custom-organismdatabase" id="toc-running-alpseq-with-the-custom-organismdatabase" class="nav-link" data-scroll-target="#running-alpseq-with-the-custom-organismdatabase">Running <em>alpseq</em> with the custom organism/database</a></li>
   </ul>
 </nav>
 </nav>
@@ -148,7 +145,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Running alpseq</h1>
+<h1 class="title">Using alpseq with a custom reference</h1>
 </div>
 
 
@@ -165,92 +162,119 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="introduction" class="level2">
-<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>This page will teach you how to use <em>alpseq</em> to analyse nanobody panning data! 🦙</p>
-</section>
-<section id="running-the-pipeline" class="level2">
-<h2 class="anchored" data-anchor-id="running-the-pipeline">Running the pipeline</h2>
+<p><em>alpseq</em> comes with a built-in alpaca reference, built from IMGT sequences. This reference is used by both IgBLAST and matchbox, the two software we use for nanobody annotation. To use <em>alpseq</em> with your own custom references you just need to build your own IgBLAST database (matchbox uses one of the files in this database for its annotation process).</p>
+<p>The IgBLAST documentation has a short guide <a href="https://ncbi.github.io/igblast/cook/How-to-set-up.html">here</a>, but below we will describe the process in more detail.</p>
+<p>There are four steps:</p>
 <ol type="1">
-<li><p>Clone the repo (<code>git clone https://github.com/kzeglinski/alpseq.git</code>)</p></li>
-<li><p>Edit the <code>nextflow.config</code> file to suit your environment (<a href="#config">see below</a> for more info).</p></li>
-<li><p>Make sure you have nextflow installed on your computer</p></li>
-<li><p>Run the pipeline using <code>nextflow run alpseq/main.nf -profile docker</code> or <code>nextflow run alpseq/main.nf -profile singularity</code> depending on which container engine you want to use</p></li>
+<li>Creating the V gene annotation file</li>
+<li>Creating the V gene database</li>
+<li>Creating the auxiliary file</li>
+<li>Creating the database with all of the V/D/J genes that will be searched</li>
 </ol>
-<p>There is also a nice guide on running nextflow pipelines for beginners <a href="https://bioinformaticsworkbook.org/dataAnalysis/nextflow/01_introductionToNextFlow.html#gsc.tab=0">here</a></p>
-<section id="parameters" class="level3">
-<h3 class="anchored" data-anchor-id="parameters">Parameters</h3>
-<p>On the command line, you can see a summary of key parameters using <code>nextflow run alpseq/main.nf --help</code>.</p>
-<p><strong>The most important parameters that you need to set every time (required arguments) are:</strong></p>
+<section id="building-the-database" class="level2">
+<h2 class="anchored" data-anchor-id="building-the-database">Building the database</h2>
+<p>Before you start, make sure you have the correct V/D/J germline files. This is explained in the IgBLAST documentation:</p>
+<blockquote class="blockquote">
+<p>To search IMGT germline sequences, you need to download them from IMGT web site (<a href="http://www.imgt.org/vquest/refseqh.html#VQUEST" class="uri">http://www.imgt.org/vquest/refseqh.html#VQUEST</a> ). You need to download all V, D and J sequences for whatever organisms you are interested in. Combine all V, all D and all J sequences, respectively, into separate files (i.e., one file for all V sequences, one for all D sequences and one file all for J sequences). After you have downloaded the sequences, invoke our utility tool edit_imgt_file.pl (in the bin directory in the IgBlast release package) to process these sequences (i.e., to change the long IMGT definition lines to germline gene names only). For example:</p>
+<p><code>bin/edit_imgt_file.pl imgt_file &gt; my_seq_file</code></p>
+</blockquote>
+<p>Note: <em>alpseq</em> expects the files to be named like ‘imgt_{ORGANISM}_ighv’ and ‘imgt_{ORGANISM}_ighd’, etc so please follow this naming convention or you will need to manually edit the paths in the <code>igblast.nf</code> and/or <code>matchbox_annotate.nf</code> scripts.</p>
+<section id="creating-the-v-gene-annotation-file" class="level3">
+<h3 class="anchored" data-anchor-id="creating-the-v-gene-annotation-file">Creating the V gene annotation file</h3>
+<p>This file annotates the germline V genes. It should be located at the path: <code>internal_data/alpaca/alpaca.ndm.imgt</code> (where you replace <code>alpaca</code> with the name of the organism you are planning to use).</p>
+<p>It should be in a tab-separated format with the following columns:</p>
+<p><code>IGHV1-18*01     1  75  76  99  100     150     151     174     175     288     VH  0</code></p>
+<p><a href="https://b-t.cr/t/standardizing-the-format-of-a-germline-set/143/7">Using this forum post</a>, my best guess at what the numbers mean is:</p>
 <ul>
-<li><p><code>--out_dir</code> is the path where output files will be written to. If it doesn’t exist yet, the pipeline will create it</p></li>
-<li><p><code>--fastq_dir</code> is the path where the input fastq files are located</p></li>
-<li><p><code>--sample_sheet</code> is the path to the .csv formatted sample sheet</p></li>
+<li><p>column 1: allele name (clean)</p></li>
+<li><p>column 2: FR1 start</p></li>
+<li><p>column 3: FR1 end</p></li>
+<li><p>column 4: CDR1 start</p></li>
+<li><p>column 5: CDR1 end</p></li>
+<li><p>column 6: FR2 start</p></li>
+<li><p>column 7: FR2 end</p></li>
+<li><p>column 8: CDR2 start</p></li>
+<li><p>column 9: CDR2 end</p></li>
+<li><p>column 10: FR3 start</p></li>
+<li><p>column 11: FR3 end</p></li>
+<li><p>column 12: gene type (VH or VK or VL)</p></li>
+<li><p>column 13: not sure? but usually seems to be zero in the human one</p></li>
 </ul>
-<p><strong>Other parameters you might sometimes need to change are:</strong></p>
-<ul>
-<li><p><code>--use_igblast</code> whether to use IgBLAST for nanobody annotation or not (default: <code>true</code>)</p></li>
-<li><p><code>--qc_only</code> whether to only perform quality control of the samples, and skip making a pan report. Turn this on if you are not analysing panning data with rounds (e.g.&nbsp;repertoire, or just sequencing unenriched libraries) (default: <code>false</code>)</p></li>
-</ul>
-<p>Some more advanced you shouldn’t need to change often parameters are:</p>
-<ul>
-<li><p><code>--adapter_r1</code> and <code>--adapter_r2</code> the read 1 and read 2 adapters to trim off (default are for Illumina NextSeq)</p></li>
-<li><p><code>--maximum_overlap</code> the maximum overlap of reads 1 and 2, for merging with FLASH. You might need to change this if you have a different sequencing construct design (default: <code>250</code>)</p></li>
-<li><p><code>--igblast_databases</code> and/or <code>--mb_scripts</code> the paths to the IgBLAST databases and matchbox scripts to use for nanobody annotation. If using a custom organism you may also need to edit the parameter <code>igblast_db_name</code> (default: alpaca) to match your organism’s name</p></li>
-<li><p><code>--template_dir</code> and <code>--extensions_dir</code> and <code>--quaro_base_yaml</code> the paths to the template files used to generate quarto reports. You could change these to create your own custom reports</p></li>
-<li><p><code>--sequence_trim_5p</code> and <code>--sequence_trim_3p</code> are optional sequences to trim off the 5’ and 3’ when writing out nucleotide sequences. This is useful if, for example, you want to remove bits of the nanobody DNA sequence prior to writing it out (e.g.&nbsp;remove his tag) (default: <code>""</code>)</p></li>
-<li><p><code>--chunk_size</code> since IgBLAST doesn’t scale well, break samples into chunks for annotation. This will submit a whole bunch of slurm jobs, so you might need to change it if that is a problem for your compute cluster (default: <code>25000</code>)</p></li>
-</ul>
-<section id="config" class="level4">
-<h4 class="anchored" data-anchor-id="config">Nextflow config files</h4>
-<p>You can set all of the above parameters on the command line (e.g.&nbsp;<code>nextflow run alpseq/main.nf -profile docker --fastq_dir ~/my_files/</code>), although take care that, as for all nextflow pipelines, a single dash is used for nextflow options (e.g.&nbsp;<code>-profile docker</code>) and a double dash is used for pipeline parameters (e.g.&nbsp;<code>--fastq_dir ~/my_files/</code>).</p>
-<p>However, I personally prefer to change these parameters in the <code>nextflow.config</code> file that is contained within the top-level directory of the pipeline. This is handy as you can then copy the config into your output directory to have a record of the parameters you used.</p>
-<p>The config file also allows you to control other aspects of how nextflow runs this pipeline (for example, using SLURM or AWS). The config file supplied with <em>alpseq</em> has been written to run on WEHI’s Milton HPC, and may not work on your system. You might want to try looking at the <a href="https://github.com/nf-core/configs">nf-core collection of institutional config files</a> to see if they have one for your institute. Alternatively, you could try asking a nextflow expert at your workplace!</p>
-<p>For more information about writing/editing nextflow config files, take a look at the <a href="https://www.nextflow.io/docs/latest/config.html">official nextflow documentation</a>.</p>
+<p>Best way I can see to get these numbers is copy paste the sequence into IMGT/V-QUEST and scroll down to the bottom for the annotations. Then, manually enter them into the table.</p>
+</section>
+<section id="creating-the-v-gene-database" class="level3">
+<h3 class="anchored" data-anchor-id="creating-the-v-gene-database">Creating the V gene database</h3>
+<p>Next, you need to build a database for just the V genes. You can do this by using the <code>makeblastdb</code> tool (included in IgBLAST and BLAST software), on the cleaned V gene file as shown in the IgBLAST documentation:</p>
+<pre><code>bin/makeblastdb -parse_seqids -dbtype nucl -in my_seq_file</code></pre>
+</section>
+<section id="creating-the-auxiliary-file" class="level3">
+<h3 class="anchored" data-anchor-id="creating-the-auxiliary-file">Creating the auxiliary file</h3>
+<p>The IgBLAST docs instruct us to ‘supply a file that has information such as CDR3 stop for germline J genes’. It has some that look like this (example shown is <code>optional_file/human_gl.aux</code>):</p>
+<pre><code># The chain type, first coding frame start position, chain type, CDR3 stop.
+#positions are 0-based
+
+IGHJ1*01        0   JH  17
+IGHJ1P*01       2   JH
+IGHJ2*01        1   JH  18
+IGHJ2P*01       0   JH
+IGHJ3*01        1   JH  15
+IGHJ3*02        1   JH  15
+IGHJ3P*01       0   JH
+IGHJ4*01        2   JH  13
+IGHJ4*02        2   JH  13
+IGHJ4*03        2   JH  13
+IGHJ5*01        2   JH  16
+IGHJ5*02        2   JH  16
+IGHJ6*01        2   JH  28
+IGHJ6*02        2   JH  28
+IGHJ6*03        2   JH  28
+IGHJ6*04        2   JH  28</code></pre>
+<p>According to the IgBLAST documentation, the columns are</p>
+<ol type="1">
+<li>Allele name</li>
+<li>Germline J gene coding frame start position (position is 0-based)</li>
+<li>J gene type (JH, JK, JL)</li>
+<li>The CDR3 end position for each sequence in the germline J sequence database</li>
+</ol>
+<p>We can again manually construct this using IMGT/V-QUEST. It won’t work on just the J genes by themselves, so we can construct an artificial Nb sequence to find out this information. Using human <code>IGHJ2*01</code> as an example:</p>
+<p>Paste <code>IGHV1-18*02</code>, <code>IGHD1-14*01</code> and <code>IGHJ2*01</code> together and am looking to recreate this line: <code>IGHJ2*01        1    JH  18</code></p>
+<p>I think that IMGT/V-QUEST is 1-based not 0-based and that’s why things aren’t quite lining up like it’s saying codon_start=2 but above it’s 1, and when you line up the CDR3 with the J gene, it ends at position 19 not 18.</p>
+<p>I double checked with a couple of other J genes and this theory seems to be correct. So basically to get column 2, just look at the J region codon_start and minus 1. <strong>IMPORTANT: this only works if the sequence is in frame. so, need to check whether it is and if not then add some N’s after the D gene to bring it back into frame</strong></p>
+<p>To get column 4, line up the CDR3 nucleotide sequence with the J gene and see which position it ends at (minus 1/ensure you are using zero based positions)</p>
+<p>Following these steps I was able to make the auxiliary file for alpaca that is included in <em>alpseq</em>:</p>
+<pre><code># The allele, first coding frame start position, chain type, CDR3 stop.
+# positions are 0-based
+
+IGHJ1*01    2   JH  13
+IGHJ2*01    2   JH  19
+IGHJ3*01    1   JH  15
+IGHJ4*01    2   JH  13
+IGHJ5*01    2   JH  16
+IGHJ6*01    2   JH  13
+IGHJ7*01    2   JH  19</code></pre>
+<p>If you have an understanding of how to do this properly let me know, I would love to learn!</p>
+</section>
+<section id="creating-the-vdj-germline-databases" class="level3">
+<h3 class="anchored" data-anchor-id="creating-the-vdj-germline-databases">Creating the V/D/J germline databases</h3>
+<p>These should be located in the <code>databases/</code> folder. Essentially, copy your cleaned V/D/J germline reference files into here and run <code>makeblastdb</code> as for the V gene database before.</p>
+</section>
+<section id="what-to-do-if-you-get-the-dreaded-blast-queryoptions-error-message" class="level3">
+<h3 class="anchored" data-anchor-id="what-to-do-if-you-get-the-dreaded-blast-queryoptions-error-message">What to do if you get the dreaded ‘BLAST query/options error’ message</h3>
+<p>Once you’ve done these steps, try testing a random sequence with the IgBLAST command line tool. You might encounter this error message: <em>BLAST query/options error: Germline annotation database alpaca/alpaca_V could not be found in [internal_data] directory. Please refer to the BLAST+ user manual.</em></p>
+<p>Some tips to fix this:</p>
+<ol type="1">
+<li>Make sure you didn’t forget to export the environment variables (<code>IGDATA</code>, with <strong>absolute path</strong> pointing to the folder that contains internal_data. In my case it was: <code>/stornext/General/data/user_managed/grpu_mritchie_1/kathleen/igblast/igdata/</code> and you also need <code>IGBLASTDB</code> which is the folder with all the databases you search. Mine was: <code>/stornext/General/data/user_managed/grpu_mritchie_1/kathleen/igblast/databases</code>)</li>
+<li>Before making the database, try having extracted the contents of the taxonomy database (<a href="ftp://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz)" class="uri">ftp://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz)</a> into the same directory. Not sure why it works, but I found a seqanswers post about the same error message (just for a regular BLAST database) and this was suggested as a fix (the post is at <a href="#0">https://www.seqanswers.com/forum/bioinformatics/bioinformatics-aa/29829-deploying-a-local-version-of-blast-having-issues)</a></li>
+<li>Once you’ve made the database, check with <code>blastdbcheck -dir .</code> (I believe this comes with the actual BLAST program, not IgBLAST) to make sure it’s all good.</li>
+</ol>
+<p>Following this procedure on not only the germline V gene database in internal_data but also the normal database in the IGBLASTDB path fixed the next error message I got: <em>Error: mdb_dbi_open: MDB_NOTFOUND: No matching key/data pair found</em></p>
 </section>
 </section>
-<section id="sample-sheet" class="level3">
-<h3 class="anchored" data-anchor-id="sample-sheet">Sample sheet</h3>
-<p>Sample sheets should have the following columns:</p>
-<ul>
-<li><p><code>sample_num</code>: a sample number (can duplicate samples if e.g.&nbsp;the same round 0 is shared across multiple pans)</p></li>
-<li><p><code>library</code>: a string to name the library (just used for naming/labelling)</p></li>
-<li><p><code>antigen</code>: a name for the antigen (just used for naming/labelling)</p></li>
-<li><p><code>round</code>: the round of panning e.g.&nbsp;0, 1, 2, 3, 4</p></li>
-<li><p><code>replicate</code>: an ID for the replicate <code>NA</code> if no replicates</p></li>
-<li><p><code>panning_id</code>: an ID that groups samples from the same pan (so that a report can contain comparisons of multiple pans)</p></li>
-<li><p><code>report_id</code>: a name for the report (so you can generate multiple reports for multiple different pans at once)</p></li>
-<li><p><code>r1_file_name</code>: name of the read 1 fastq file</p></li>
-<li><p><code>r2_file_name</code>: name of the read 2 fastq file</p></li>
-</ul>
-<p>For example, the sample sheet to process the <a href="https://pubmed.ncbi.nlm.nih.gov/32887876/">Hanke et al.</a> data would be:</p>
-<pre><code>sample_num,library,antigen,round,replicate,panning_id,report_id,r1_file_name,r2_file_name
-S01,Tyson,covid,0,NA,1,hanke_et_al,round0_read1.fastq.gz,round0_read2.fastq.gz
-S02,Tyson,covid,1,NA,1,hanke_et_al,round1_read1.fastq.gz,round1_read2.fastq.gz
-S03,Tyson,covid,2,NA,1,hanke_et_al,round2_read1.fastq.gz,round2_read2.fastq.gz</code></pre>
-</section>
-<section id="output" class="level3">
-<h3 class="anchored" data-anchor-id="output">Output</h3>
-<p><em>alpseq</em> will output the following:</p>
-<ul>
-<li><p><code>original_annotation_tsv</code>: the .tsv files from either IgBLAST or matchbox</p></li>
-<li><p><code>processed_tsv</code>: the .tsv files that have been processed by alpseq (summaries of germline gene composition, tables of clone counts collapsed by CDR3, etc)</p></li>
-<li><p><code>report</code>: the QC and panning reports generated by alpseq. See the ‘sample reports’ tab for examples of these</p></li>
-</ul>
-</section>
-</section>
-<section id="other-useful-stuff" class="level2">
-<h2 class="anchored" data-anchor-id="other-useful-stuff">Other useful stuff</h2>
-<section id="sanger-mode" class="level3">
-<h3 class="anchored" data-anchor-id="sanger-mode">Sanger mode</h3>
-<p><em>alpseq</em> can be used to annotate sanger sequences with the <code>--sanger_mode</code> parameter. This isn’t really a super recommended workflow, but exists as an option for our collaborators. Use at your own risk!</p>
-</section>
-<section id="igblast-vs-matchbox" class="level3">
-<h3 class="anchored" data-anchor-id="igblast-vs-matchbox">IgBLAST vs matchbox</h3>
-<p>There are two different tools that can be used for annotating nanobodies in alpseq, <a href="https://www.ncbi.nlm.nih.gov/igblast/">IgBLAST</a> (default) and <a href="https://github.com/jakob-schuster/matchbox">matchbox</a>. A comparison/benchmark is included in our <a href="https://www.biorxiv.org/content/10.1101/2025.10.22.661623v1">preprint</a>, but briefly the tools generate highly similar counts for most CDR3s. IgBLAST is much slower, but outputs a lot more information (<a href="https://docs.airr-community.org/en/stable/datarep/rearrangements.html#fields">according to AIRR specs</a>), while matchbox is a lot faster but outputs just the bare minimum information for analysis (CDR3 and V gene). Choose the method that best suits the info you require and the computing power you have available!</p>
+<section id="running-alpseq-with-the-custom-organismdatabase" class="level2">
+<h2 class="anchored" data-anchor-id="running-alpseq-with-the-custom-organismdatabase">Running <em>alpseq</em> with the custom organism/database</h2>
+<p>Once you’ve followed these steps and confirmed it is working on the command line, you can try using the custom database with <em>alpseq</em>. You’ll need to set the following parameters: <code>igblast_databases</code> (the path to where the IgBLAST databases are) and <code>igblast_db_name</code> (the name of the custom organism).</p>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
