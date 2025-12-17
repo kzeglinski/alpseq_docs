@@ -13,7 +13,8 @@ website:
         text: Home
       - run_alpseq.qmd
       - sample_reports.qmd
-      - alpseq_r.qmd
+      - custom_reference.qmd
+      - alpseqR.qmd
 
 format:
   html:

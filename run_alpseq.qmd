@@ -42,7 +42,7 @@ Some more advanced you shouldn't need to change often parameters are:
 
 -   `--maximum_overlap` the maximum overlap of reads 1 and 2, for merging with FLASH. You might need to change this if you have a different sequencing construct design (default: `250`)
 
--   `--igblast_databases` and/or `--mb_scripts` the paths to the IgBLAST databases and matchbox scripts to use for nanobody annotation
+-   `--igblast_databases` and/or `--mb_scripts` the paths to the IgBLAST databases and matchbox scripts to use for nanobody annotation. If using a custom organism you may also need to edit the parameter `igblast_db_name` (default: alpaca) to match your organism's name
 
 -   `--template_dir` and `--extensions_dir` and `--quaro_base_yaml` the paths to the template files used to generate quarto reports. You could change these to create your own custom reports
 

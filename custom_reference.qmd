@@ -1,0 +1,150 @@
+---
+title: "Using alpseq with a custom reference"
+---
+
+*alpseq* comes with a built-in alpaca reference, built from IMGT sequences. This reference is used by both IgBLAST and matchbox, the two software we use for nanobody annotation. To use *alpseq* with your own custom references you just need to build your own IgBLAST database (matchbox uses one of the files in this database for its annotation process).
+
+The IgBLAST documentation has a short guide [here](https://ncbi.github.io/igblast/cook/How-to-set-up.html), but below we will describe the process in more detail.
+
+There are four steps:
+
+1.  Creating the V gene annotation file
+2.  Creating the V gene database
+3.  Creating the auxiliary file
+4.  Creating the database with all of the V/D/J genes that will be searched
+
+## Building the database
+
+Before you start, make sure you have the correct V/D/J germline files. This is explained in the IgBLAST documentation:
+
+> To search IMGT germline sequences, you need to download them from IMGT web site (<http://www.imgt.org/vquest/refseqh.html#VQUEST> ). You need to download all V, D and J sequences for whatever organisms you are interested in. Combine all V, all D and all J sequences, respectively, into separate files (i.e., one file for all V sequences, one for all D sequences and one file all for J sequences). After you have downloaded the sequences, invoke our utility tool edit_imgt_file.pl (in the bin directory in the IgBlast release package) to process these sequences (i.e., to change the long IMGT definition lines to germline gene names only). For example:
+>
+> `bin/edit_imgt_file.pl imgt_file > my_seq_file`
+
+Note: *alpseq* expects the files to be named like 'imgt\_{ORGANISM}\_ighv' and 'imgt\_{ORGANISM}\_ighd', etc so please follow this naming convention or you will need to manually edit the paths in the `igblast.nf` and/or `matchbox_annotate.nf` scripts.
+
+### Creating the V gene annotation file
+
+This file annotates the germline V genes. It should be located at the path: `internal_data/alpaca/alpaca.ndm.imgt` (where you replace `alpaca` with the name of the organism you are planning to use).
+
+It should be in a tab-separated format with the following columns:
+
+`IGHV1-18*01     1  75  76  99  100     150     151     174     175     288     VH  0`
+
+[Using this forum post](https://b-t.cr/t/standardizing-the-format-of-a-germline-set/143/7), my best guess at what the numbers mean is:
+
+-   column 1: allele name (clean)
+
+-   column 2: FR1 start
+
+-   column 3: FR1 end
+
+-   column 4: CDR1 start
+
+-   column 5: CDR1 end
+
+-   column 6: FR2 start
+
+-   column 7: FR2 end
+
+-   column 8: CDR2 start
+
+-   column 9: CDR2 end
+
+-   column 10: FR3 start
+
+-   column 11: FR3 end
+
+-   column 12: gene type (VH or VK or VL)
+
+-   column 13: not sure? but usually seems to be zero in the human one
+
+Best way I can see to get these numbers is copy paste the sequence into IMGT/V-QUEST and scroll down to the bottom for the annotations. Then, manually enter them into the table.
+
+### Creating the V gene database
+
+Next, you need to build a database for just the V genes. You can do this by using the `makeblastdb` tool (included in IgBLAST and BLAST software), on the cleaned V gene file as shown in the IgBLAST documentation:
+
+```         
+bin/makeblastdb -parse_seqids -dbtype nucl -in my_seq_file
+```
+
+### Creating the auxiliary file
+
+The IgBLAST docs instruct us to 'supply a file that has information such as CDR3 stop for germline J genes'. It has some that look like this (example shown is `optional_file/human_gl.aux`):
+
+```         
+# The chain type, first coding frame start position, chain type, CDR3 stop.
+#positions are 0-based
+
+IGHJ1*01        0   JH  17
+IGHJ1P*01       2   JH
+IGHJ2*01        1   JH  18
+IGHJ2P*01       0   JH
+IGHJ3*01        1   JH  15
+IGHJ3*02        1   JH  15
+IGHJ3P*01       0   JH
+IGHJ4*01        2   JH  13
+IGHJ4*02        2   JH  13
+IGHJ4*03        2   JH  13
+IGHJ5*01        2   JH  16
+IGHJ5*02        2   JH  16
+IGHJ6*01        2   JH  28
+IGHJ6*02        2   JH  28
+IGHJ6*03        2   JH  28
+IGHJ6*04        2   JH  28
+```
+
+According to the IgBLAST documentation, the columns are
+
+1.  Allele name
+2.  Germline J gene coding frame start position (position is 0-based)
+3.  J gene type (JH, JK, JL)
+4.  The CDR3 end position for each sequence in the germline J sequence database
+
+We can again manually construct this using IMGT/V-QUEST. It won't work on just the J genes by themselves, so we can construct an artificial Nb sequence to find out this information. Using human `IGHJ2*01` as an example:
+
+Paste `IGHV1-18*02`, `IGHD1-14*01` and `IGHJ2*01` together and am looking to recreate this line: `IGHJ2*01        1    JH  18`
+
+I think that IMGT/V-QUEST is 1-based not 0-based and that's why things aren't quite lining up like it's saying codon_start=2 but above it's 1, and when you line up the CDR3 with the J gene, it ends at position 19 not 18.
+
+I double checked with a couple of other J genes and this theory seems to be correct. So basically to get column 2, just look at the J region codon_start and minus 1. **IMPORTANT: this only works if the sequence is in frame. so, need to check whether it is and if not then add some N's after the D gene to bring it back into frame**
+
+To get column 4, line up the CDR3 nucleotide sequence with the J gene and see which position it ends at (minus 1/ensure you are using zero based positions)
+
+Following these steps I was able to make the auxiliary file for alpaca that is included in *alpseq*:
+
+```         
+# The allele, first coding frame start position, chain type, CDR3 stop.
+# positions are 0-based
+
+IGHJ1*01    2   JH  13
+IGHJ2*01    2   JH  19
+IGHJ3*01    1   JH  15
+IGHJ4*01    2   JH  13
+IGHJ5*01    2   JH  16
+IGHJ6*01    2   JH  13
+IGHJ7*01    2   JH  19
+```
+
+If you have an understanding of how to do this properly let me know, I would love to learn!
+
+### Creating the V/D/J germline databases
+
+These should be located in the `databases/` folder. Essentially, copy your cleaned V/D/J germline reference files into here and run `makeblastdb` as for the V gene database before.
+
+### What to do if you get the dreaded 'BLAST query/options error' message
+
+Once you've done these steps, try testing a random sequence with the IgBLAST command line tool. You might encounter this error message: *BLAST query/options error: Germline annotation database alpaca/alpaca_V could not be found in \[internal_data\] directory. Please refer to the BLAST+ user manual.*
+
+Some tips to fix this:
+
+1.   Make sure you didn't forget to export the environment variables (`IGDATA`, with **absolute path** pointing to the folder that contains internal_data. In my case it was: `/stornext/General/data/user_managed/grpu_mritchie_1/kathleen/igblast/igdata/` and you also need `IGBLASTDB` which is the folder with all the databases you search. Mine was: `/stornext/General/data/user_managed/grpu_mritchie_1/kathleen/igblast/databases`)
+2.  Before making the database, try having extracted the contents of the taxonomy database (<ftp://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz)> into the same directory. Not sure why it works, but I found a seqanswers post about the same error message (just for a regular BLAST database) and this was suggested as a fix (the post is at [https://www.seqanswers.com/forum/bioinformatics/bioinformatics-aa/29829-deploying-a-local-version-of-blast-having-issues)](#0)
+3.  Once you've made the database, check with `blastdbcheck -dir .` (I believe this comes with the actual BLAST program, not IgBLAST) to make sure it's all good.
+
+Following this procedure on not only the germline V gene database in internal_data but also the normal database in the IGBLASTDB path fixed the next error message I got: *Error: mdb_dbi_open: MDB_NOTFOUND: No matching key/data pair found*
+
+## Running *alpseq* with the custom organism/database
+
+Once you've followed these steps and confirmed it is working on the command line, you can try using the custom database with *alpseq*. You'll need to set the following parameters: `igblast_databases` (the path to where the IgBLAST databases are) and `igblast_db_name` (the name of the custom organism).
